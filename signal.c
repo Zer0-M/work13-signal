@@ -2,9 +2,19 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
 static void sighandler(int signo){
     if(signo == SIGINT){
-        printf("\nYou have exited the process using a keyboard interrupt\n");
+        int fd=open("interruptlog",O_WRONLY|O_APPEND|O_CREAT);
+        char buffer[]="Program exited due to SIGINT(keyboard interrupt)\n";
+        int byteswrote=write(fd,buffer,strlen(buffer));
+        if(byteswrote<0){
+            printf("%s\n",strerror(errno));
+        }
+        printf("\nCheck interruptlog\n");
+        close(fd);
         exit(0);
     }
     else if(signo == SIGUSR1){
